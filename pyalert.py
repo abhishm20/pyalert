@@ -15,7 +15,7 @@ APP_NAME = "mojo"
 TIME_STAMP_FORMAT = '[%d/%b/%Y %H:%M:%S]'
 
 # Fully qualified path
-ERROR_LOG_FILE = ""
+ERROR_LOG_FILE = "./error.log"
 
 PYMAILER_PATH = os.path.join(os.path.expanduser('~'), 'pymailer', 'pymailer.py')
 GITHUB_LINK = "https://github.com/abhishm20/pymailer"
@@ -33,10 +33,16 @@ def main():
     last_line = subprocess.check_output(['tail', '-1', ERROR_LOG_FILE])
     last_time = datetime.strptime(last_line[:22], TIME_STAMP_FORMAT)
     if last_minute < last_time:
+        last_appended = False
         for line in open(ERROR_LOG_FILE):
-            line_time = datetime.strptime(line[:22], TIME_STAMP_FORMAT)
-            if line_time > last_minute:
-                added_lines.append(line)
+            try:
+                line_time = datetime.strptime(line[:22], TIME_STAMP_FORMAT)
+                if line_time > last_minute:
+                    added_lines.append(line)
+                    last_appended = True
+            except:
+                if last_appended:
+                    added_lines.append(line)
 
     if added_lines:
         subprocess.call(["python", PYMAILER_PATH,
