@@ -29,9 +29,16 @@ def main():
         print "Error: pymailer not found (please visit %s)" % GITHUB_LINK
         exit(-1)
     added_lines = []
+
     last_minute = datetime.now() - timedelta(minutes=MINUTES_INTERVAL_TO_CHECK)
-    last_line = subprocess.check_output(['tail', '-1', ERROR_LOG_FILE])
-    last_time = datetime.strptime(last_line[:22], TIME_STAMP_FORMAT)
+    last_time = last_minute
+    last_lines = subprocess.check_output(['tail', '-100', ERROR_LOG_FILE])
+    for line in last_lines.split('\n'):
+        try:
+            last_time = datetime.strptime(line[:22], TIME_STAMP_FORMAT)
+        except:
+            pass
+
     if last_minute < last_time:
         last_appended = False
         for line in open(ERROR_LOG_FILE):
@@ -43,7 +50,7 @@ def main():
             except:
                 if last_appended:
                     added_lines.append(line)
-
+    
     if added_lines:
         subprocess.call(["python", PYMAILER_PATH,
                          '-e', TO_EMAIL,
